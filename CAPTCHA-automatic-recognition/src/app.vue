@@ -1043,13 +1043,13 @@ export default {
             {
               parts: [
                 {
-                  text: prompt,
-                },
-                {
                   inline_data: {
                     mime_type: "image/png",
                     data: base64Image,
                   },
+                },
+                {
+                  text: prompt,
                 },
               ],
             },
@@ -1062,22 +1062,21 @@ export default {
           "Content-Type": "application/json",
         },
       });
-
-      // 提取结果
-      if (response.data.candidates && response.data.candidates.length > 0) {
-        const candidate = response.data.candidates[0];
-        if (
-          candidate.content &&
-          candidate.content.parts &&
-          candidate.content.parts.length > 0
-        ) {
-          const text = candidate.content.parts[0].text || "";
-          // 只保留数字、字母和负号
-          return text.replace(/[^a-zA-Z0-9\-]/g, "");
+      const parts = response?.data?.candidates?.[0]?.content?.parts;
+      if (!Array.isArray(parts) || parts.length === 0) {
+        return "";
+      }
+      let fullText = "";
+      for (const part of parts) {
+        if (typeof part?.text === "string" && part.text && !part.thought) {
+          fullText += part.text;
         }
       }
-
-      return "";
+      if (!fullText) {
+        return "";
+      }
+      const cleanText = fullText.replace(/<think>[\s\S]*?<\/think>/gi, "");
+      return cleanText.replace(/[^a-zA-Z0-9\-]/g, "");
     },
 
     /**
