@@ -38,5 +38,15 @@
     "url_pattern": "www.wuleba.com",
     "captcha_image_selector": ".code-plane img[class='img-code']",
     "captcha_input_selector": ""
+  },
+  {
+    "url_pattern": "zodgame.xyz",
+    "captcha_image_selector": "img[src*='mod=seccode']",
+    "captcha_input_selector": "input[name='seccodeverify']"
+  },
+  {
+    "url_pattern": "tjxt.moe.edu.cn",
+    "captcha_image_selector": "img[placeholder='验证码加载中']",
+    "captcha_input_selector": "input[placeholder='验证码']"
   }
 ]
