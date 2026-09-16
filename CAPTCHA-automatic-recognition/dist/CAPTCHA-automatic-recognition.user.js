@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AI验证码自动识别填充
 // @namespace    https://github.com/anghunk/UserScript
-// @version      1.2.2
+// @version      1.2.3
 // @author       anghunk
 // @description  自动识别网页上的验证码并填充到输入框中，点击识别图标触发识别。
 // @license      Apache-2.0
@@ -21,7 +21,7 @@
   'use strict';
 
   const name = "CAPTCHA-automatic-recognition";
-  const version = "1.2.2";
+  const version = "1.2.3";
   const author = "anghunk";
   const description = "Automatically recognize the CAPTCHA on the webpage and fill it into the input box, click the recognition icon to trigger recognition.";
   const type = "module";
@@ -2930,6 +2930,7 @@
        * 使用Google Gemini API识别验证码
        */
       async recognizeWithGemini(base64Image) {
+        var _a, _b, _c, _d;
         const model = this.settings.geminiModel || "gemini-2.5-flash-lite";
         const baseApiUrl = this.settings.geminiApiUrl || "https://generativelanguage.googleapis.com/v1beta/models";
         const apiUrl = `${baseApiUrl}/${model}:generateContent`;
@@ -2942,13 +2943,13 @@
               {
                 parts: [
                   {
-                    text: prompt
-                  },
-                  {
                     inline_data: {
                       mime_type: "image/png",
                       data: base64Image
                     }
+                  },
+                  {
+                    text: prompt
                   }
                 ]
               }
@@ -2961,14 +2962,21 @@
             "Content-Type": "application/json"
           }
         });
-        if (response.data.candidates && response.data.candidates.length > 0) {
-          const candidate = response.data.candidates[0];
-          if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
-            const text = candidate.content.parts[0].text || "";
-            return text.replace(/[^a-zA-Z0-9\-]/g, "");
+        const parts = (_d = (_c = (_b = (_a = response == null ? void 0 : response.data) == null ? void 0 : _a.candidates) == null ? void 0 : _b[0]) == null ? void 0 : _c.content) == null ? void 0 : _d.parts;
+        if (!Array.isArray(parts) || parts.length === 0) {
+          return "";
+        }
+        let fullText = "";
+        for (const part of parts) {
+          if (typeof (part == null ? void 0 : part.text) === "string" && part.text && !part.thought) {
+            fullText += part.text;
           }
         }
-        return "";
+        if (!fullText) {
+          return "";
+        }
+        const cleanText = fullText.replace(/<think>[\s\S]*?<\/think>/gi, "");
+        return cleanText.replace(/[^a-zA-Z0-9\-]/g, "");
       },
       /**
        * 使用通义千问 API 识别验证码（新版 API 格式，messages/content 结构）
@@ -4672,7 +4680,7 @@
                 vue.createElementVNode("div", _hoisted_90, [
                   vue.withDirectives(vue.createElementVNode("textarea", {
                     "onUpdate:modelValue": _cache[29] || (_cache[29] = ($event) => $data.settings.disabledDomains = $event),
-                    placeholder: "每行一个域名，支持正则和通配符，例如：\r\nexample.com\r\n*.example.org\r\nexample.*.com\r\n/^(www\\.)?example\\.com$/",
+                    placeholder: "每行一个域名，支持正则和通配符，例如：\nexample.com\n*.example.org\nexample.*.com\n/^(www\\.)?example\\.com$/",
                     rows: "6",
                     class: "domain-textarea"
                   }, null, 512), [
